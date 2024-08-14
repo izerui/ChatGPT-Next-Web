@@ -14,23 +14,13 @@ const serverConfig = getServerSideConfig();
 export async function requestOpenai(req: NextRequest) {
   const controller = new AbortController();
 
-  const isAzure = req.nextUrl.pathname.includes("azure/deployments");
+  const isAzure = true;
 
   var authValue,
     authHeaderName = "";
-  if (isAzure) {
-    authValue =
-      req.headers
-        .get("Authorization")
-        ?.trim()
-        .replaceAll("Bearer ", "")
-        .trim() ?? "";
 
-    authHeaderName = "api-key";
-  } else {
-    authValue = req.headers.get("Authorization") ?? "";
-    authHeaderName = "Authorization";
-  }
+  authValue = req.headers.get("Authorization") ?? "";
+  authHeaderName = "Authorization";
 
   let path = `${req.nextUrl.pathname}${req.nextUrl.search}`.replaceAll(
     "/api/openai/",
@@ -63,6 +53,7 @@ export async function requestOpenai(req: NextRequest) {
       req?.nextUrl?.searchParams?.get("api-version") ||
       serverConfig.azureApiVersion;
     baseUrl = baseUrl.split("/deployments").shift() as string;
+    // req.nextUrl.pathname : /api/openai/v1/chat/completions
     path = `${req.nextUrl.pathname.replaceAll(
       "/api/azure/",
       "",
@@ -95,8 +86,9 @@ export async function requestOpenai(req: NextRequest) {
       }
     }
   }
+  console.log("path", path);
 
-  const fetchUrl = cloudflareAIGatewayUrl(`${baseUrl}/${path}`);
+  const fetchUrl = cloudflareAIGatewayUrl(`${baseUrl}/chat/completions`);
   console.log("fetchUrl", fetchUrl);
   const fetchOptions: RequestInit = {
     headers: {
